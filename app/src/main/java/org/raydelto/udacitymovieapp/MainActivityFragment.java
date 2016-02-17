@@ -62,7 +62,7 @@ public class MainActivityFragment extends Fragment {
 
 
 
-        private ArrayList<Movie> getMovieDataFromJson(String forecastJsonStr, int numDays)
+        private ArrayList<Movie> getMovieDataFromJson(String movieJsonStr)
                 throws JSONException {
 
             // These are the names of the JSON objects that need to be extracted.
@@ -74,7 +74,7 @@ public class MainActivityFragment extends Fragment {
             final String POPULARITY = "popularity";
             final String VOTE_AVERAGE = "vote_average";
 
-            JSONObject movieJson = new JSONObject(forecastJsonStr);
+            JSONObject movieJson = new JSONObject(movieJsonStr);
 
             ArrayList<Movie> results = new ArrayList<Movie>();
             JSONArray movieArray = movieJson.getJSONArray(RESULTS);
@@ -142,7 +142,7 @@ public class MainActivityFragment extends Fragment {
                 }
                 movieJsonStr = buffer.toString();
                 try {
-                    return getMovieDataFromJson(movieJsonStr, 7);
+                    return getMovieDataFromJson(movieJsonStr);
                 } catch (JSONException e) {
                     Log.e(LOG_TAG, "ERROR:" + e.getMessage());
 
