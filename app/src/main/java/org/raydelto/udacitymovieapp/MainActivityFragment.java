@@ -2,15 +2,13 @@ package org.raydelto.udacitymovieapp;
 
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
-import android.text.format.Time;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import com.squareup.picasso.Callback;
+import android.widget.GridView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,7 +19,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -32,44 +29,29 @@ import java.util.ArrayList;
 public class MainActivityFragment extends Fragment {
     private static final String LOG_TAG = MainActivityFragment.class.getSimpleName();
     private FetchMovieTask movieTask;
+    private MovieAdapter adapter;
+    private ArrayList<Movie> movies;
 
     public MainActivityFragment() {
         movieTask = new FetchMovieTask();
+        movies = new ArrayList<Movie>();
     }
 
     private void updateMovies(){
-        movieTask.execute();
-    }
 
-    public void test(ArrayList<Movie> movies) {
-        Log.v(LOG_TAG,"TEST");
-        Log.v(LOG_TAG,movies.size()+"");
-        for(Movie movie: movies){
-            Log.v(LOG_TAG, "" + movie.getTitle());
-        }
+        movieTask.execute();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        adapter = MovieAdapter.getInstance(getActivity(),R.layout.movie_item, movies);
+
         View root = inflater.inflate(R.layout.fragment_main, container, false);
-        /*ImageView imgTest = (ImageView) root.findViewById(R.id.imgTest);
-        Picasso.with(getActivity()).load("http://i.imgur.com/DvpvklR.png").into(imgTest, new Callback() {
-            @Override
-            public void onSuccess() {
-                Log.v(LOG_TAG,"SUCCESS");
-            }
-
-            @Override
-            public void onError() {
-                Log.v(LOG_TAG,"FAIL");
-
-            }
-
-
-        });*/
+        GridView gridMovies = (GridView)root.findViewById(R.id.gridMovies);
+        gridMovies.setAdapter(adapter);
         updateMovies();
-        Log.v(LOG_TAG, "TEST");
         return root;
 
     }
@@ -80,13 +62,6 @@ public class MainActivityFragment extends Fragment {
 
 
 
-        /**
-         * Take the String representing the complete forecast in JSON Format and
-         * pull out the data we need to construct the Strings needed for the wireframes.
-         * <p/>
-         * Fortunately parsing is easy:  constructor takes the JSON string and converts it
-         * into an Object hierarchy for us.
-         */
         private ArrayList<Movie> getMovieDataFromJson(String forecastJsonStr, int numDays)
                 throws JSONException {
 
@@ -105,14 +80,9 @@ public class MainActivityFragment extends Fragment {
             JSONArray movieArray = movieJson.getJSONArray(RESULTS);
 
             for (int i = 0; i < movieArray.length(); i++) {
-                // Get the JSON object representing the movie
                 JSONObject movie = movieArray.getJSONObject(i);
-                //public Movie(String title, String posterPath, String overView, String voteAverage, String popularity, String releaseDate) {
                 results.add(new Movie(movie.getString(TITLE),movie.getString(POSTER_PATH),movie.getString(OVERVIEW),
                         (float) movie.getDouble(VOTE_AVERAGE),(float)movie.getDouble(POPULARITY),movie.getString(RELEASE_DATE)));
-
-
-
             }
             return results;
 
@@ -121,13 +91,8 @@ public class MainActivityFragment extends Fragment {
         @Override
         protected void onPostExecute(ArrayList<Movie> movies) {
             super.onPostExecute(movies);
-            Log.v(LOG_TAG,"ON POST EXECUTE");
-            for(Movie movie: movies){
-                Log.v(LOG_TAG, "" + movie.getTitle());
-            }
-            Log.v(LOG_TAG,"**END**ON POST EXECUTE");
-
-            test(movies);
+            adapter.clear();
+            adapter.addAll(movies);
         }
 
         @Override
@@ -141,13 +106,6 @@ public class MainActivityFragment extends Fragment {
             String movieJsonStr = null;
 
             try {
-                // Construct the URL for the OpenWeatherMap query
-                // Possible parameters are avaiable at OWM's forecast API page, at
-                // http://openweathermap.org/API#forecast
-                String postal = params.length > 0 ? params[0] : "";
-                String unit = params.length > 0 ? params[1] : "metric";
-                //UriBuilder uriBuilder;
-                //http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=267eb270349b55f387d61a3b9e0f4224
                 Uri builtUri = Uri.parse("http://api.themoviedb.org/3/discover/movie").buildUpon()
                         .appendQueryParameter("sort_by", "popularity.desc")
                         .appendQueryParameter("api_key", BuildConfig.MOVIEDB_API_KEY)
@@ -183,7 +141,6 @@ public class MainActivityFragment extends Fragment {
                     return null;
                 }
                 movieJsonStr = buffer.toString();
-                Log.v(LOG_TAG, "JSON: " + movieJsonStr);
                 try {
                     return getMovieDataFromJson(movieJsonStr, 7);
                 } catch (JSONException e) {

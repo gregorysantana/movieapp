@@ -18,7 +18,7 @@ android {
     }
 
     buildTypes.each {
-        it.buildConfigField 'String', 'MOVIEDB_API_KEY', '\"267eb270349b55f387d61a3b9e0f4224\"'
+        it.buildConfigField 'String', 'MOVIEDB_API_KEY', '\"<PUT YOUR THEMOVIEDB API KEY HERE\"'
     }
     productFlavors {
     }
